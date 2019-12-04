@@ -1,11 +1,6 @@
 loco = 0
 latest = 0
 
-'''
-NEXT
-
-'''
-
 ram = [0] * 65536
 
 symtab = {}
@@ -21,8 +16,6 @@ def nextOp():
 	global op
 	op += 1
 	return op
-
-
 
 # ----------------------
 # Symbol Table
@@ -40,7 +33,7 @@ def label(name):
 			print('Error: Label %s redefined.' % name)
 	else:
 		symtab[name] = loco
-		
+
 def addr(label, rel = False):
 	if label in symtab:
 		if type(symtab[label]) == type(0):
@@ -54,7 +47,10 @@ def addr(label, rel = False):
 	else:
 		symtab[label] = [(loco, rel)]
 		dw(0xffff)
-		
+
+def offset(label):
+	addr(label, True)
+
 def words(forthline):
 	while len(forthline):
 		spc = forthline.find(' ')
@@ -253,7 +249,7 @@ precomp('ROT', 'ROT'); words('DOCOL TOR SWAP FROMR SWAP SEMIS')
 precomp('SPACE', 'SPACE'); words('DOCOL BL EMIT SEMIS')
 
 precomp('-DUP', 'DDUP');
-words('DOCOL DUP ZBRAN'); addr('DDU10', True)
+words('DOCOL DUP ZBRAN'); offset('DDU10')
 words('DUP')
 label('DDU10'); words('SEMIS')
 
@@ -261,7 +257,7 @@ label('DDU10'); words('SEMIS')
 precomp('TRAVERSE', 'TRAV')
 words('DOCOL SWAP')
 label('TRA10'); words('OVER PLUS LIT'); dw(0x7f)
-words('OVER CAT LESS ZBRAN'); addr('TRA10', True)
+words('OVER CAT LESS ZBRAN'); offset('TRA10')
 words('SWAP DROP SEMIS')
 
 precomp('LATEST', 'LATES')
@@ -286,8 +282,8 @@ precomp('!CSP', 'SCSP')
 words('DOCOL SPAT CSP STORE SEMIS')
 
 precomp('?ERROR', 'QERR')
-words('DOCOL SWAP ZBRAN'); addr('QER10', True)
-words('ERROR BRAN'); addr('QER20', True)
+words('DOCOL SWAP ZBRAN'); offset('QER10')
+words('ERROR BRAN'); offset('QER20')
 label('QER10'); words('DROP')
 label('QER20'); words('SEMIS')
 
@@ -343,53 +339,53 @@ precomp('COUNT', 'COUNT')
 words('DOCOL DUP ONEP SWAP CAT SEMIS')
 
 precomp('TYPE', 'TYPE')
-words('DOCOL DDUP ZBRAN'); addr('TYP20', True)
+words('DOCOL DDUP ZBRAN'); offset('TYP20')
 words('OVER PLUS SWAP XDO')
-label('TYP10'); words('I CAT EMIT XLOOP'); addr('TYP10', True)
-words('BRAN'); addr('TYP30')
+label('TYP10'); words('I CAT EMIT XLOOP'); offset('TYP10')
+words('BRAN'); offset('TYP30')
 label('TYP20'); words('DROP')
 label('TYP30'); words('SEMIS')
 
 precomp('-TRAILING', 'DTRAI')
 words('DOCOL DUP ZERO XDO')
 label('DTR10'); words('OVER OVER PLUS ONE SUB CAT')
-words('BL SUB ZBRAN'); addr('DTR20', True)
-words('LEAVE BRAN'); addr('DTR30', True)
+words('BL SUB ZBRAN'); offset('DTR20')
+words('LEAVE BRAN'); offset('DTR30')
 label('DTR20'); words('ONE SUB')
-label('DTR30'); words('XLOOP'); addr('DTR10', True)
+label('DTR30'); words('XLOOP'); offset('DTR10')
 words('SEMIS')
 
 precomp('(.")', 'PDOTQ')
 words('DOCOL R COUNT DUP ONEP FROMR PLUS TOR TYPE SEMIS')
 
 precomp('."', 'DOTQ')
-words('DOCOL LIT'); dw(34); words('STATE AT ZBRAN'); addr('DOT10', True)
-words('COMP PDOTQ WORD HERE CAT ONEP ALLOT BRAN'); addr('DOT20', True)
+words('DOCOL LIT'); dw(34); words('STATE AT ZBRAN'); offset('DOT10')
+words('COMP PDOTQ WORD HERE CAT ONEP ALLOT BRAN'); offset('DOT20')
 label('DOT10'); words('WORD HERE COUNT TYPE')
 label('DOT20'); words('SEMIS')
 
 precomp('EXPECT', 'EXPEC')
 words('DOCOL OVER PLUS OVER XDO')
 label('EXP10'); words('KEY DUP LIT'); dw(22);
-words('PORIG AT EQUAL ZBRAN'); addr('EXP20', True)
+words('PORIG AT EQUAL ZBRAN'); offset('EXP20')
 words('DROP LIT'); dw(8); words('OVER I EQUAL DUP FROMR')
-words('TWO SUB PLUS TOR SUB BRAN'); addr('EXP30', True)
-label('EXP20'); words('DUP LIT'); dw(21); words('EQUAL ZBRAN'); addr('EXP40', True)
-words('LEAVE DROP BL ZERO BRAN'); addr('EXP50', True)
+words('TWO SUB PLUS TOR SUB BRAN'); offset('EXP30')
+label('EXP20'); words('DUP LIT'); dw(21); words('EQUAL ZBRAN'); offset('EXP40')
+words('LEAVE DROP BL ZERO BRAN'); offset('EXP50')
 label('EXP40'); words('DUP')
 label('EXP50'); words('I CSTOR ZERO I ONEP CSTOR ZERO I TWOP CSTOR')
-label('EXP30'); words('EMIT XLOOP'); addr('EXP10', True)
+label('EXP30'); words('EMIT XLOOP'); offset('EXP10')
 words('SEMIS')
- 
+
 precomp('QUERY', 'QUERY')
 words('DOCOL TIB AT LIT'); dw(80); words('EXPEC ZERO IN STORE SEMIS')
 
 precomp('\0x00', 'NULL')
-words('DOCOL BLK AT ZBRAN'); addr('NUL20', True)
+words('DOCOL BLK AT ZBRAN'); offset('NUL20')
 words('ONE BLK PSTOR ZERO IN STORE BLK AT BSCR MOD')
-words('ZEQU ZBRAN'); addr('NUL10', True)
+words('ZEQU ZBRAN'); offset('NUL10')
 words('QEXEC FROMR DROP')
-label('NUL10'); words('BRAN'); addr('NUL40', True)
+label('NUL10'); words('BRAN'); offset('NUL40')
 label('NUL20'); words('FROMR DROP')
 label('NUL40'); words('SEMIS')
 
@@ -409,8 +405,8 @@ precomp('PAD', 'PAD')
 words('DOCOL HERE LIT'); dw(84); words('PLUS SEMIS')
 
 precomp('WORD', 'WORD')
-words('DOCOL BLK AT ZBRAN'); addr('WOR10', True)
-words('BLK AT BLOCK BRAN'); addr('WOR20', True)
+words('DOCOL BLK AT ZBRAN'); offset('WOR10')
+words('BLK AT BLOCK BRAN'); offset('WOR20')
 label('WOR10'); words('TIB AT')
 label('WOR20'); words('IN AT PLUS SWAP')
 words('ENCL HERE LIT'); dw(34); words('BL IN')
@@ -448,7 +444,7 @@ words('DOCOL SEMIS')
 '''
 for i in range(0, 512):
 	if i % 16 == 0:
-		print(); print(format(i, '04x') + ': ', end = '')  
+		print(); print(format(i, '04x') + ': ', end = '')
 	print(format(ram[i], '02x') + ' ', end = '')
 print()
 print()
